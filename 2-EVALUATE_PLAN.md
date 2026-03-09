@@ -8,7 +8,7 @@ The PRD is multiple files. All files are very important. You will find the PRD f
 
 This benchmark version also has a frozen canonical requirement catalog at `evaluator/requirements_catalog_v1.md`. That catalog is the scoring denominator for this PRD version. It freezes requirement IDs, functional areas, labels, source citations, and severity tiers while staying outside `docs/prd/` so Step 1 does not see evaluator-only material.
 
-If `evaluator/requirements_catalog_v1.md` is missing, stop immediately and tell the user to run `python3 tools/fetch_evaluator.py` from the repo root before retrying Step 2. Do not try to reconstruct the catalog yourself.
+If `evaluator/requirements_catalog_v1.md` is missing, first attempt to run `python3 tools/fetch_evaluator.py` from the repo root yourself. If you cannot run shell commands or the fetch fails, stop and tell the user exactly to run `python3 tools/fetch_evaluator.py` from the repo root before retrying Step 2. Do not try to reconstruct the catalog yourself.
 
 ## Instructions
 

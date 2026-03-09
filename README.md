@@ -28,7 +28,7 @@ Open a **new conversation** (fresh context). Tell the agent:
 
 The agent will read both the PRD and the plan from Step 1, then audit the plan for coverage and alignment. It scores every requirement as full, partial, or missing, writes `PLAN_EVAL.md`, and then generates `PLAN_EVAL_REPORT.html` from that finished evaluation.
 The denominator is frozen in `evaluator/requirements_catalog_v1.md`, so the evaluator scores against the same requirement list every run instead of re-deriving it from scratch.
-If the `evaluator/` folder is missing, run `python3 tools/fetch_evaluator.py` first.
+If the `evaluator/` folder is missing, the Step 2 agent should first attempt to run `python3 tools/fetch_evaluator.py`. If the agent cannot do that, run it manually and retry Step 2.
 
 **Requires:** `results/PLAN.md` from Step 1
 **Primary output:** `results/PLAN_EVAL.md`
@@ -54,7 +54,7 @@ Each step consumes significant context. Starting fresh ensures the agent has max
 2-EVALUATE_PLAN.md           # Step 2 prompt — evaluation
 3-PLAN_EVAL_REPORT.md        # Optional fallback prompt — HTML report rerender only
 docs/prd/                    # The product spec (PRD + supporting docs)
-evaluator/requirements_catalog_v1.md  # Frozen Step 2 denominator hidden from Step 1
+evaluator/requirements_catalog_v1.md  # Frozen Step 2 denominator, fetched on demand
 tools/fetch_evaluator.py     # Downloads the public evaluator bundle into evaluator/
 results/                     # All outputs land here
 CLAUDE.md                    # Auto-loaded instructions for Claude Code
