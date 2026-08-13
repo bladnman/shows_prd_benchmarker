@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan Coverage Dashboard</title>
+    <style>
+        :root {
+            --bg: #090a0f;
+            --surface: #141722;
+            --surface-hover: #1e2230;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --accent-green: #10b981;
+            --accent-green-alpha: rgba(16, 185, 129, 0.2);
+            --accent-red: #f43f5e;
+            --accent-red-alpha: rgba(244, 63, 94, 0.2);
+            --accent-orange: #f59e0b;
+            --accent-blue: #3b82f6;
+            --border: #2dd4bf22;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+        }
+
+        .dashboard {
+            width: 100%;
+            max-width: 1200px;
+            padding: 40px;
+            display: grid;
+            gap: 24px;
+            grid-template-columns: repeat(12, 1fr);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        header {
+            grid-column: span 12;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 24px;
+        }
+
+        .title {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin-top: 8px;
+        }
+
+        .card {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+        }
+
+        .score-hero {
+            grid-column: span 4;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(135deg, var(--surface) 0%, #1a1e2d 100%);
+            border-top: 4px solid var(--accent-orange);
+        }
+
+        .score-hero h2 {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .score-hero .number {
+            font-size: 5rem;
+            font-weight: 800;
+            line-height: 1;
+            color: var(--accent-orange);
+            text-shadow: 0 0 40px rgba(245, 158, 11, 0.3);
+            margin-bottom: 8px;
+        }
+        
+        .score-hero .label {
+            font-size: 1.1rem;
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .story-arc {
+            grid-column: span 8;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .story-arc h3 {
+            font-size: 1.25rem;
+            margin-bottom: 16px;
+            color: var(--accent-blue);
+        }
+
+        .arc-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 16px;
+            position: relative;
+        }
+
+        .arc-line {
+            position: absolute;
+            top: 24px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: linear-gradient(to right, var(--surface-hover), var(--accent-orange), var(--surface-hover));
+            z-index: 1;
+        }
+
+        .arc-node {
+            background: var(--surface);
+            border: 2px solid var(--surface-hover);
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            font-weight: bold;
+            color: var(--text-muted);
+            transition: all 0.3s;
+        }
+
+        .arc-node.completed {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent-green);
+            border-color: var(--accent-green);
+        }
+
+        .arc-node.active {
+            border-color: var(--accent-orange);
+            color: var(--accent-orange);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
+            background: var(--surface);
+        }
+
+        .arc-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 30%;
+            text-align: center;
+            z-index: 2;
+        }
+
+        .arc-step h4 { margin-top: 16px; font-size: 0.95rem; color: var(--text); }
+        .arc-step p { margin-top: 8px; font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; }
+
+        .breakdown {
+            grid-column: span 12;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .stat-box {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border);
+        }
+
+        .stat-box.critical { border-left: 4px solid var(--accent-red); }
+        .stat-box.important { border-left: 4px solid var(--accent-orange); }
+        .stat-box.detail { border-left: 4px solid var(--accent-blue); }
+
+        .stat-box span { font-size: 0.9rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-box strong { font-size: 1.5rem; }
+
+        .strengths {
+            grid-column: span 6;
+            border-top: 4px solid var(--accent-green);
+        }
+
+        .risks {
+            grid-column: span 6;
+            border-top: 4px solid var(--accent-red);
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title.green { color: var(--accent-green); }
+        .section-title.red { color: var(--accent-red); }
+
+        .chip-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .chip {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .chip.green { background: var(--accent-green-alpha); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .chip.red { background: var(--accent-red-alpha); color: var(--accent-red); border: 1px solid rgba(244, 63, 94, 0.3); }
+
+        .text-content p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        .text-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .gaps-container {
+            grid-column: span 12;
+            padding: 32px;
+        }
+
+        .gaps-header {
+            margin-bottom: 24px;
+        }
+
+        .gaps-header h3 {
+            font-size: 1.5rem;
+            color: var(--text);
+        }
+
+        .gaps-header p {
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        .gap-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .gap-card {
+            background: #171a25;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: background 0.2s;
+        }
+        
+        .gap-card:hover {
+            background: #1c202d;
+        }
+
+        .gap-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--accent-red);
+        }
+
+        .gap-id {
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: var(--accent-red);
+            background: var(--accent-red-alpha);
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+
+        .gap-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .gap-impact {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background: #2a2f42;
+            border-radius: 3px;
+            margin-top: 15px;
+            overflow: hidden;
+            width: 100%;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+        <header>
+            <div>
+                <h1 class="title">PRD Readiness Dashboard</h1>
+                <p class="subtitle">ShowBiz Validation Report &middot; Generated from EVAL_plan_coverage.md</p>
+            </div>
+            <div style="text-align: right;">
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Evaluation Status</p>
+                <p style="color: var(--accent-orange); font-weight: 600; font-size: 1.1rem;">Requires Remediation</p>
+            </div>
+        </header>
+
+        <!-- KPI Hero -->
+        <div class="card score-hero">
+            <h2>Overall Coverage</h2>
+            <div class="number">47.5<span style="font-size: 3rem;">%</span></div>
+            <div class="label">80 Requirements Total</div>
+            <div class="progress-bar" style="width: 70%; margin-top: 24px;">
+                <div class="progress-fill" style="width: 47.5%; background: var(--accent-orange); box-shadow: 0 0 10px var(--accent-orange);"></div>
+            </div>
+        </div>
+
+        <!-- Narrative Arc -->
+        <div class="card story-arc">
+            <h3>The Transition Narrative</h3>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 24px;">
+                We started by securing the foundation, establishing strong technical direction. This evaluation identified where behavioral contracts are still loose. Now, we must tighten these gaps to reach implementation readiness.
+            </p>
+            
+            <div class="arc-container">
+                <div class="arc-line"></div>
+                
+                <div class="arc-step">
+                    <div class="arc-node completed">1</div>
+                    <h4>Initial Setup</h4>
+                    <p>Stack selection, core routing, namespace data partitioning, and AI groundwork.</p>
+                </div>
+                
+                <div class="arc-step">
+                    <div class="arc-node active">2</div>
+                    <h4>Gap Identification &nbsp; <span style="color: var(--accent-orange);">47.5%</span></h4>
+                    <p>Revealed missing critical lifecycle rules, ambiguous AI behavior, and security hygiene risks.</p>
+                </div>
+                
+                <div class="arc-step">
+                    <div class="arc-node">3</div>
+                    <h4>Implementation Ready</h4>
+                    <p>Target state featuring 100% deterministic precision on contracts, policies, and schemas.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sub-Scores Breakdown -->
+        <div class="breakdown">
+            <div class="stat-box critical">
+                <span>Critical Priority</span>
+                <div style="text-align: right;">
+                    <strong>63.3%</strong>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">19 of 30 Met</div>
+                </div>
+            </div>
+            <div class="stat-box important">
+                <span>Important Priority</span>
+                <div style="text-align: right;">
+                    <strong>42.5%</strong>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">17 of 40 Met</div>
+                </div>
+            </div>
+            <div class="stat-box detail">
+                <span>Detail Priority</span>
+                <div style="text-align: right;">
+                    <strong>20.0%</strong>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">2 of 10 Met</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Strengths vs Risks -->
+        <div class="card strengths">
+            <div class="section-title green">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                Solid Grounds
+            </div>
+            <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.95rem;">Give stakeholders confidence. What is handled well in the current plan?</p>
+            <div class="chip-list">
+                <div class="chip green">Next.js + Supabase Stack</div>
+                <div class="chip green">Namespace/User Isolation</div>
+                <div class="chip green">App Routing & Shell</div>
+                <div class="chip green">AI Entry Points</div>
+                <div class="chip green">Timestamp Merge Sync</div>
+                <div class="chip green">Streaming Scoop</div>
+            </div>
+            <div class="text-content">
+                <p><strong>Core Infrastructure:</strong> The plan successfully defines a resilient architectural direction including Next.js, targeted Supabase partitioning, and deterministic schema migrations.</p>
+                <p><strong>Discovery UX:</strong> Complex interaction models like streaming the AI "Scoop" and concept-grounded recommendation lookups are captured effectively and designed thoughtfully.</p>
+            </div>
+        </div>
+
+        <div class="card risks">
+            <div class="section-title red">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                Areas at Risk
+            </div>
+            <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.95rem;">Missing or partial components creating high operational risk.</p>
+            <div class="chip-list">
+                <div class="chip red">Lifecycle Rules</div>
+                <div class="chip red">AI Guardrails</div>
+                <div class="chip red">Data Continuity</div>
+                <div class="chip red">Security Hygiene</div>
+            </div>
+            <div class="text-content">
+                <p><strong>Ambiguous Logic:</strong> Implicit behaviors like auto-save defaults and re-add semantics mean unpredictable outcomes for users.</p>
+                <p><strong>AI Wildcards:</strong> Missing constraints on tone, parser schema contracts, and safe fallbacks undermine reliability and overall safety.</p>
+                <p><strong>Security Blind Spots:</strong> Missing `.gitignore` specs and key-boundary definitions invite dangerous credential exposure during continuous benchmarking.</p>
+            </div>
+        </div>
+
+        <!-- Top Gaps Deep Dive -->
+        <div class="card gaps-container">
+            <div class="gaps-header">
+                <h3>Critical Missing Components</h3>
+                <p>These top 5 gaps cause immediate trust damage or structural failure if left unaddressed.</p>
+            </div>
+            
+            <div class="gap-grid">
+                <!-- Gap 1 -->
+                <div class="gap-card">
+                    <span class="gap-id">PRD-071</span>
+                    <h4 class="gap-title">Secret & Credential Handling</h4>
+                    <p class="gap-impact"><strong>Impact:</strong> Failing to clearly define client/server key boundaries and commit rules will likely result in credential exposure and an invalid benchmark deployment. Hard security block.</p>
+                </div>
+                
+                <!-- Gap 2 -->
+                <div class="gap-card">
+                    <span class="gap-id">PRD-044</span>
+                    <h4 class="gap-title">Spoiler-Safe AI Restraints</h4>
+                    <p class="gap-impact"><strong>Impact:</strong> Undefined spoiler policies for Ask and Scoop workflows break a core product promise. Accidental spoilers cause immediate user trust damage.</p>
+                </div>
+                
+                <!-- Gap 3 -->
+                <div class="gap-card">
+                    <span class="gap-id">PRD-013</span>
+                    <h4 class="gap-title">Deterministic Save Defaults</h4>
+                    <p class="gap-impact"><strong>Impact:</strong> Without rules for what happens when a show is saved non-specifically (e.g., via a tag), collection state becomes inconsistent and completely unpredictable.</p>
+                </div>
+                
+                <!-- Gap 4 -->
+                <div class="gap-card">
+                    <span class="gap-id">PRD-024</span>
+                    <h4 class="gap-title">Data Continuity Plan</h4>
+                    <p class="gap-impact"><strong>Impact:</strong> No migration path or continuity safeguards exist for existing user libraries across schema version upgrades, creating a very high risk of user data loss.</p>
+                </div>
+                
+                <!-- Gap 5 -->
+                <div class="gap-card">
+                    <span class="gap-id">PRD-069</span>
+                    <h4 class="gap-title">.gitignore Enforcement</h4>
+                    <p class="gap-impact"><strong>Impact:</strong> Excluding environment secrets is mandatory repo hygiene. Its omission creates an environment prone to accidental secret leakages during automated test runs.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
